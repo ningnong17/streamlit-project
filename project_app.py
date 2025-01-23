@@ -61,11 +61,10 @@ def user_input_features():
 
 user_input, user_town, user_floor_area = user_input_features()
 
-model = joblib.load('trained_resale_price_grid_search_model.pkl')
+model = joblib.load('trained_resale_price_decision_tree_model.pkl')
 
 prediction = model.predict(user_input)
 
-#scaled_prediction = prediction / 1000
 
 st.subheader("Predicted Resale Price")
 st.write(f"The predicted resale price is: ${prediction[0]:,.2f}")
