@@ -3,8 +3,14 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 
-df = pd.read_csv('resale.csv')
+# Load data (assuming 'resale.csv' is in the same directory)
+try:
+    df = pd.read_csv('resale.csv')
+except FileNotFoundError:
+    st.error("Error: 'resale.csv' not found. Please ensure the file is in the same directory.")
+    st.stop()
 
+# Define expected columns
 expected_columns = [
     'town_ANG MO KIO', 'town_BEDOK', 'town_BISHAN', 'town_BUKIT BATOK', 'town_BUKIT MERAH',
     'town_BUKIT PANJANG', 'town_BUKIT TIMAH', 'town_CENTRAL AREA', 'town_CHOA CHU KANG',
@@ -52,19 +58,26 @@ def user_input_features():
         'lease_commence_date': [lease_commence_date],
     }
     features = pd.DataFrame(data)
-    
-    features = pd.get_dummies(features)
 
+    features = pd.get_dummies(features)
     features = features.reindex(columns=expected_columns, fill_value=0)
-    
+
     return features, town, floor_area_sqm
 
 user_input, user_town, user_floor_area = user_input_features()
 
-model = joblib.load('trained_resale_price_decision_tree_model.pkl')
+# Load the model
+try:
+    model = joblib.load('trained_resale_price_decision_tree_model.pkl')
+except FileNotFoundError:
+    st.error("Error: 'trained_resale_price_decision_tree_model.pkl' not found. Please ensure the file is in the same directory.")
+    st.stop()
 
-prediction = model.predict(user_input)
-
+try:
+    prediction = model.predict(user_input)
+except Exception as e:
+    st.error(f"Error making prediction: {e}")
+    st.stop()
 
 st.subheader("Predicted Resale Price")
 st.write(f"The predicted resale price is: ${prediction[0]:,.2f}")
@@ -74,7 +87,6 @@ filtered_data = df[df['town'] == user_town].copy()
 filtered_data['difference'] = abs(filtered_data['floor_area_sqm'] - user_floor_area)
 closest_listings = filtered_data.nsmallest(5, 'difference')
 
-# Display latest listings
 st.subheader(f"5 Latest Listings in {user_town}")
 
 # Filter the data for the selected town
